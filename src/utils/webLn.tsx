@@ -1,7 +1,7 @@
-import { createContext, use, useEffect, useState } from "react";
-import type { WebLNProvider as WebLNProviderInterface } from "@webbtc/webln-types";
-
-export const WebLNContext = createContext<WebLNProviderType | null>(null);
+/* eslint-disable react-refresh/only-export-components */
+"use client";
+import { createContext, useContext, useEffect, useState } from "react";
+import { WebLNProvider as WebLNProviderInterface } from "@webbtc/webln-types";
 
 export interface WebLNContextResult {
   webln: WebLNProviderInterface | undefined;
@@ -34,6 +34,8 @@ interface WebLNSuccessResult extends WebLNContextResult {
 }
 
 export type WebLNProviderType = WebLNPending | WebLNErrorResult | WebLNSuccessResult;
+
+export const WebLNContext = createContext<WebLNProviderType | null>(null);
 
 /**
  * Connects to `window.webln`, enabling and exposing `webln` through `WebLNContext`.
@@ -93,10 +95,16 @@ export function WebLNProvider({ children }: { children: React.ReactNode }) {
  * Returnes the value of `WebLNContext`. Throws an error if not used within a WebLNProvider.
  */
 export function useWebLNContext(): WebLNProviderType {
-  const res = use(WebLNContext);
+  const res = useContext(WebLNContext);
 
   if (res === null) {
     throw new Error("useWebLNContext must be used within a WebLNProvider");
+  }
+
+  if (res.isLoading === false) {
+    if (typeof res.webln === "undefined") {
+      console.error("WebLN provider is not connected");
+    }
   }
 
   return res;

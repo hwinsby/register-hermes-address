@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useWebLNContext } from "../utils/webLn";
+import { useNDKContext, useNDKUser } from "../utils/nostr";
 
 import { Input } from "./Input";
 import { RadioGroup } from "./RadioGroup";
@@ -12,6 +14,8 @@ export const AddressRegistrationForm = () => {
     provider: "XMPP" | "Nostr" | "";
     federation: string;
   };
+  const [isLoading, setIsLoading] = useState(true);
+  const [providerConnected, setProviderConnected] = useState(false);
   const [formValues, setFormValues] = useState<FormValues>({
     username: "",
     publicKey: "",
@@ -40,6 +44,39 @@ export const AddressRegistrationForm = () => {
   const federationOptions = ["Fediment 1", "Fediment 2"];
   const providerOptions = ["XMPP", "Nostr"];
 
+  const webln = useWebLNContext();
+  console.log("webln", webln);
+
+  const ndk = useNDKContext();
+  console.log("ndk", ndk);
+  const ndkUser = useNDKUser();
+
+  console.log("isLoading", isLoading);
+  console.log("providerConnected", providerConnected);
+
+  useMemo(() => {
+    if (!webln.isLoading && !webln.error) {
+      setIsLoading(false);
+      setProviderConnected(true);
+      if (webln.webln.isEnabled) {
+        setFormValues({ ...formValues, provider: "XMPP" });
+      }
+    }
+
+    if (!ndk.isLoading && !ndk.error) {
+      setIsLoading(false);
+      setProviderConnected(true);
+      setFormValues({ ...formValues, provider: "Nostr", publicKey: ndkUser?._pubkey });
+    }
+
+    if (webln.error && ndk.error) {
+      setIsLoading(false);
+      setProviderConnected(false);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [webln, ndk]);
+
   console.log("formValues", formValues);
 
   const inputStyles = "rounded p-2.5 bg-primaryDrk focus: border-secondary outline-none w-full";
@@ -62,11 +99,27 @@ export const AddressRegistrationForm = () => {
         onChange={handleChange}
         placeholder="Public Key"
       />
+      {!isLoading && !providerConnected && <Alert />}
       <RadioGroup
         name="provider"
         value={provider}
-        onChange={handleChange}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+          handleChange(event);
+          if (event.target.value === "XMPP") {
+            setFormValues((prev) => {
+              return { ...prev, publicKey: "" };
+            });
+          }
+          if (event.target.value === "Nostr") {
+            setFormValues((prev) => {
+              return { ...prev, publicKey: ndkUser ? ndkUser._pubkey : "" };
+            });
+          }
+        }}
         options={providerOptions}
+        disabled={isLoading || !providerConnected}
+        webln={webln}
+        ndkUser={ndkUser}
       />
       <Select
         className={inputStyles}
@@ -77,5 +130,13 @@ export const AddressRegistrationForm = () => {
       />
       <Button text="Register" disabled={!formValid} type="submit" />
     </form>
+  );
+};
+
+const Alert = () => {
+  return (
+    <div className="bg-[#ffeed5cc] border-l-4 border-orange-500 text-orange-700 p-4" role="alert">
+      <p>Please connect to a lightning wallet to register address.</p>
+    </div>
   );
 };
