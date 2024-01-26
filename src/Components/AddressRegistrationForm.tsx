@@ -45,14 +45,9 @@ export const AddressRegistrationForm = () => {
   const providerOptions = ["XMPP", "Nostr"];
 
   const webln = useWebLNContext();
-  console.log("webln", webln);
 
   const ndk = useNDKContext();
-  console.log("ndk", ndk);
   const ndkUser = useNDKUser();
-
-  console.log("isLoading", isLoading);
-  console.log("providerConnected", providerConnected);
 
   useMemo(() => {
     if (!webln.isLoading && !webln.error) {
@@ -76,8 +71,6 @@ export const AddressRegistrationForm = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webln, ndk]);
-
-  console.log("formValues", formValues);
 
   const inputStyles = "rounded p-2.5 bg-primaryDrk focus: border-secondary outline-none w-full";
 

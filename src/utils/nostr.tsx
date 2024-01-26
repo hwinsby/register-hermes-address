@@ -2,7 +2,7 @@
 import NDK, { NDKNip07Signer, NDKUser } from "@nostr-dev-kit/ndk";
 import { createContext, useContext, useEffect, useState } from "react";
 
-export const RELAYS = ["wss://relay.snort.social", "wss://nos.lol"];
+const RELAYS = [import.meta.env.VITE_RELAY_URL_1, import.meta.env.VITE_RELAY_URL_2];
 
 export interface NostrContextResult {
   /**
@@ -67,17 +67,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
 
         await ndk.connect(2500);
 
-        if (
-          "nostr" in window &&
-          window.nostr &&
-          (("isEnabled" in window.nostr &&
-            typeof window.nostr.isEnabled === "function" &&
-            (await window.nostr?.isEnabled())) ||
-            ("isEnabled" in window.nostr &&
-              typeof window.nostr.isEnabled === "boolean" &&
-              window.nostr.isEnabled) ||
-            ("_isEnabled" in window.nostr && window.nostr?._isEnabled))
-        ) {
+        if (window.nostr && !!window.nostr?._isEnabled) {
           const user = await signer.user();
 
           document.cookie = "npub=" + user.npub;
@@ -88,6 +78,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
           throw new Error("Could not connect to Nostr");
         }
       } catch (err) {
+        console.error(err);
         setError(err as Error);
         setIsLoading(false);
       }
