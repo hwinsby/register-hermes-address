@@ -2,7 +2,7 @@
 import NDK, { NDKNip07Signer, NDKUser } from "@nostr-dev-kit/ndk";
 import { createContext, useContext, useEffect, useState } from "react";
 
-const RELAYS = [import.meta.env.VITE_RELAY_URL_1, import.meta.env.VITE_RELAY_URL_2];
+const RELAYS: string[] = import.meta.env.VITE_RELAYS.split(",");
 
 export interface NostrContextResult {
   /**
