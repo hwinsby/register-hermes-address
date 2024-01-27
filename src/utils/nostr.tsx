@@ -67,7 +67,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
 
         await ndk.connect(2500);
 
-        if (window.nostr && !!window.nostr?._isEnabled) {
+        if (window.nostr?._isEnabled) {
           const user = await signer.user();
 
           document.cookie = "npub=" + user.npub;
